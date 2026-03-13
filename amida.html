@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>爆走！お昼休憩あみだ</title>
+    <style>
+        body { background: #1a1a1a; color: #fff; font-family: 'Hiragino Kaku Gothic ProN', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
+        #header { padding: 20px; background: #333; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid #ff0077; }
+        #start-btn { padding: 15px 40px; font-size: 1.2rem; cursor: pointer; background: #ff0077; color: #fff; border: none; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,0,119,0.4); }
+        #start-btn:disabled { background: #555; cursor: not-allowed; box-shadow: none; }
+        
+        .amida-wrapper { position: relative; margin: 50px auto; display: inline-block; padding-bottom: 100px; }
+        .column { position: relative; width: 140px; float: left; }
+        .vertical-line { width: 4px; background: #444; height: 1500px; margin: 0 auto; position: relative; }
+        .horizontal-line { position: absolute; height: 4px; background: #444; width: 140px; left: 50%; z-index: 1; }
+        
+        .name-label { height: 60px; font-weight: bold; color: #00ffcc; font-size: 1.1rem; }
+        .goal-label { height: 80px; margin-top: 20px; font-size: 1.5rem; font-weight: bold; color: #ffea00; border-top: 2px dashed #555; padding-top: 10px; }
+        
+        /* 動く名前本体 */
+        .runner { 
+            position: absolute; 
+            width: 120px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #ff0077; 
+            color: white; 
+            padding: 5px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            z-index: 100; 
+            white-space: nowrap;
+            box-shadow: 0 0 10px #ff0077;
+        }
+
+        .result-screen { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 40px; border: 4px solid #00ffcc; z-index: 2000; border-radius: 20px; min-width: 300px; box-shadow: 0 0 30px rgba(0,255,204,0.5); }
+        .result-item { font-size: 1.5rem; margin: 15px 0; border-bottom: 1px solid #333; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <h1>🍱 お昼休憩サバイバルあみだ</h1>
+    <button id="start-btn" onclick="runAmida()">運命のスタート！</button>
+</div>
+
+<div class="amida-wrapper" id="amida-area">
+    </div>
+
+<div id="result-screen" class="result-screen">
+    <h2 style="color:#00ffcc">✨ 本日の出撃順 ✨</h2>
+    <div id="result-list"></div>
+    <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px;">もう一度</button>
+</div>
+
+<script>
+const names = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "今林 彩乃", "中村 駿也"];
+const lineCount = names.length;
+const amidaHeight = 1500;
+const hLineData = [];
+
+function init() {
+    const area = document.getElementById('amida-area');
+    let html = "";
+    for (let i = 0; i < lineCount; i++) {
+        html += `<div class="column" id="col-${i}">
+                    <div class="name-label" id="label-${i}">${names[i]}</div>
+                    <div class="vertical-line"></div>
+                    <div class="goal-label" id="goal-${i}">?</div>
+                 </div>`;
+    }
+    area.innerHTML = html;
+
+    // 横線を生成
+    for (let i = 0; i < 40; i++) {
+        const col = Math.floor(Math.random() * (lineCount - 1));
+        const top = Math.floor(Math.random() * (amidaHeight - 200)) + 100;
+        if (hLineData.some(h => h.col === col && Math.abs(h.top - top) < 20)) continue;
+        
+        hLineData.push({ col, top });
+        const hl = document.createElement('div');
+        hl.className = 'horizontal-line';
+        hl.style.top = top + 'px';
+        document.getElementById(`col-${col}`).appendChild(hl);
+    }
+}
+
+async function runAmida() {
+    document.getElementById('start-btn').disabled = true;
+    const results = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
+    
+    // ゴールに値をセット
+    for(let i=0; i<lineCount; i++) document.getElementById(`goal-${i}`).innerText = results[i] + "番";
+
+    const promises = names.map((name, i) => startRunner(name, i, results));
+    await Promise.all(promises);
+
+    // 終了後に結果表示
+    setTimeout(() => {
+        const finalResults = names.map((name, i) => ({ name, rank: window['finalRank'+i] }))
+                                 .sort((a, b) => a.rank - b.rank);
+        const list = document.getElementById('result-list');
+        list.innerHTML = finalResults.map(r => `<div class="result-item"><b>${r.rank}番：</b>${r.name}</div>`).join('');
+        document.getElementById('result-screen').style.display = 'block';
+        window.scrollTo(0,0);
+    }, 800);
+}
+
+async function startRunner(name, startIdx, results) {
+    const runner = document.createElement('div');
+    runner.className = 'runner';
+    runner.innerText = name;
+    document.getElementById(`col-${startIdx}`).querySelector('.vertical-line').appendChild(runner);
+    document.getElementById(`label-${startIdx}`).style.visibility = 'hidden';
+
+    let currentCol = startIdx;
+    let currentY = 0;
+    
+    // このランナーが通る横線を抽出してソート
+    const myPath = () => hLineData.filter(h => h.col === currentCol || h.col === currentCol - 1).sort((a,b) => a.top - b.top);
+
+    while (true) {
+        const lines = myPath().filter(h => h.top > currentY);
+        if (lines.length === 0) break;
+
+        const nextLine = lines[0];
+        
+        // 垂直移動
+        await animate(runner, { top: nextLine.top + 'px' }, (nextLine.top - currentY) * 2);
+        currentY = nextLine.top;
+
+        // 横移動
+        const isRight = (nextLine.col === currentCol);
+        const targetCol = isRight ? currentCol + 1 : currentCol - 1;
+        const moveX = isRight ? '140px' : '-140px';
+
+        await animate(runner, { left: `calc(50% + ${moveX})` }, 200);
+
+        // 列の移動処理
+        currentCol = targetCol;
+        document.getElementById(`col-${currentCol}`).querySelector('.vertical-line').appendChild(runner);
+        runner.style.left = '50%'; // リセット
+
+        // スクロール追従（自分の動きに合わせて画面を動かす）
+        if (startIdx === 0) window.scrollTo(0, currentY - 200);
+    }
+
+    // ゴールへ
+    await animate(runner, { top: amidaHeight + 'px' }, (amidaHeight - currentY) * 2);
+    window['finalRank' + startIdx] = results[currentCol];
+}
+
+function animate(el, props, dur) {
+    return new Promise(res => {
+        const anim = el.animate([props], { duration: dur, fill: 'forwards' });
+        anim.onfinish = res;
+    });
+}
+
+init();
+</script>
+</body>
+</html>
