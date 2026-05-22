@@ -6,8 +6,14 @@
     <style>
         body { background: #1a1a1a; color: #fff; font-family: 'Hiragino Kaku Gothic ProN', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
         #header { padding: 20px; background: #333; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid #ff0077; }
-        #start-btn { padding: 15px 40px; font-size: 1.2rem; cursor: pointer; background: #ff0077; color: #fff; border: none; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,0,119,0.4); }
+        #start-btn { padding: 15px 40px; font-size: 1.2rem; cursor: pointer; background: #ff0077; color: #fff; border: none; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,0,119,0.4); margin-top: 15px; }
         #start-btn:disabled { background: #555; cursor: not-allowed; box-shadow: none; }
+        
+        /* メンバー選択エリアのスタイル */
+        .member-selector { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 800px; margin: 10px auto 0 auto; padding: 10px; background: #222; border-radius: 10px; border: 1px solid #444; }
+        .member-checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; padding: 6px 12px; background: #2a2a2a; border-radius: 20px; transition: 0.2s; border: 1px solid #333; }
+        .member-checkbox-label:hover { background: #3a3a3a; border-color: #ff0077; }
+        .member-checkbox-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: #ff0077; cursor: pointer; }
         
         .amida-wrapper { position: relative; margin: 50px auto; display: inline-block; padding-bottom: 100px; }
         .column { position: relative; width: 140px; float: left; }
@@ -41,6 +47,7 @@
 
 <div id="header">
     <h1>🍱 お昼休憩サバイバルあみだ</h1>
+    <div class="member-selector" id="checkbox-area"></div>
     <button id="start-btn" onclick="runAmida()">運命のスタート！</button>
 </div>
 
@@ -54,15 +61,50 @@
 </div>
 
 <script>
-const names = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "森田初音", "中村 駿也", "上村鞠奈", "森川愛実"];
-const lineCount = names.length;
+// マスターメンバーリスト（全員分）
+const masterNames = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "森田初音", "中村 駿也", "上村鞠奈", "森川愛実"];
+
+// 実際にくじを走らせるメンバー
+let names = [];
+let lineCount = 0;
 const amidaHeight = 1500;
 const hLineData = [];
-// 確実な結果保持用の配列
 const finalResultsArray = [];
 
-function init() {
+// 最初にチェックボックスを生成する処理
+function initSelector() {
+    const checkboxArea = document.getElementById('checkbox-area');
+    checkboxArea.innerHTML = masterNames.map((name, idx) => `
+        <label class="member-checkbox-label">
+            <input type="checkbox" value="${name}" checked onchange="buildAmida()">
+            ${name}
+        </label>
+    `).join('');
+    
+    // 最初は全員チェックが入った状態で作成
+    buildAmida();
+}
+
+// チェックボックスの選択に合わせてあみだくじを組み立てる（再描画）処理
+function buildAmida() {
+    // チェックが入っている名前だけを抽出
+    const checkboxes = document.querySelectorAll('#checkbox-area input[type="checkbox"]');
+    names = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+    lineCount = names.length;
+
     const area = document.getElementById('amida-area');
+    const startBtn = document.getElementById('start-btn');
+
+    // 2人未満だとあみだくじが成立しないのでボタンを無効化
+    if (lineCount < 2) {
+        area.innerHTML = `<p style="color:#ff0077; font-size:1.2rem; margin-top:50px;">出勤者を2人以上選択してください！</p>`;
+        startBtn.disabled = true;
+        return;
+    } else {
+        startBtn.disabled = false;
+    }
+
+    // 縦線の描画
     let html = "";
     for (let i = 0; i < lineCount; i++) {
         html += `<div class="column" id="col-${i}">
@@ -73,11 +115,13 @@ function init() {
     }
     area.innerHTML = html;
 
-    // 横線を生成
-    for (let i = 0; i < 50; i++) {
+    // 横線の生成（選択された人数に応じて本数を調整：1列あたり約8本）
+    hLineData.length = 0; // 初期化
+    const totalHLines = lineCount * 8;
+    for (let i = 0; i < totalHLines; i++) {
         const col = Math.floor(Math.random() * (lineCount - 1));
         const top = Math.floor(Math.random() * (amidaHeight - 200)) + 100;
-        if (hLineData.some(h => h.col === col && Math.abs(h.top - top) < 20)) continue;
+        if (hLineData.some(h => h.col === col && Math.abs(h.top - top) < 25)) continue;
         
         hLineData.push({ col, top });
         const hl = document.createElement('div');
@@ -88,22 +132,23 @@ function init() {
 }
 
 async function runAmida() {
+    // 割り込み防止のためボタンとチェックボックスを完全ロック
     document.getElementById('start-btn').disabled = true;
+    document.querySelectorAll('#checkbox-area input').forEach(cb => cb.disabled = true);
     
-    // 1〜7番のランダムなゴール設定
+    // 選択された人数に応じた動的な1番〜X番の配列を生成してシャッフル
     const results = Array.from({length: lineCount}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
     
     // ゴールに値をセット
     for(let i=0; i<lineCount; i++) document.getElementById(`goal-${i}`).innerText = results[i] + "番";
 
-    // ランナーたちの競争スタート
-    finalResultsArray.length = 0; // 初期化
+    // 競争スタート
+    finalResultsArray.length = 0;
     const promises = names.map((name, i) => startRunner(name, i, results));
     await Promise.all(promises);
 
     // 終了後に結果表示
     setTimeout(() => {
-        // 【修正】配列に溜まった確実な結果を番号順に並び替え
         finalResultsArray.sort((a, b) => a.rank - b.rank);
         
         const list = document.getElementById('result-list');
@@ -131,30 +176,24 @@ async function startRunner(name, startIdx, results) {
 
         const nextLine = lines[0];
         
-        // 垂直移動
         await animate(runner, { top: nextLine.top + 'px' }, (nextLine.top - currentY) * 2);
         currentY = nextLine.top;
 
-        // 横移動
         const isRight = (nextLine.col === currentCol);
         const targetCol = isRight ? currentCol + 1 : currentCol - 1;
         const moveX = isRight ? '140px' : '-140px';
 
         await animate(runner, { left: `calc(50% + ${moveX})` }, 200);
 
-        // 列の移動処理
         currentCol = targetCol;
         document.getElementById(`col-${currentCol}`).querySelector('.vertical-line').appendChild(runner);
-        runner.style.left = '50%'; // リセット
+        runner.style.left = '50%';
 
-        // スクロール追従（岩本さん基準で画面スクロール）
+        // 常に1番左のレーンの人の動きに合わせて画面を自動スクロール
         if (startIdx === 0) window.scrollTo(0, currentY - 200);
     }
 
-    // ゴールへ
     await animate(runner, { top: amidaHeight + 'px' }, (amidaHeight - currentY) * 2);
-    
-    // 【バグ修正ポイント】グローバル変数（window）への格納をやめ、到着した瞬間の最終列(currentCol)に対応する順位を安全に配列へプッシュ
     finalResultsArray.push({ name: name, rank: results[currentCol] });
 }
 
@@ -165,7 +204,8 @@ function animate(el, props, dur) {
     });
 }
 
-init();
+// 起動時に初期化
+initSelector();
 </script>
 </body>
 </html>
