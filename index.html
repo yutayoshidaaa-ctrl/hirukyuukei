@@ -45,7 +45,7 @@
 </div>
 
 <div class="amida-wrapper" id="amida-area">
-    </div>
+</div>
 
 <div id="result-screen" class="result-screen">
     <h2 style="color:#00ffcc">✨ 本日の出撃順 ✨</h2>
@@ -54,7 +54,8 @@
 </div>
 
 <script>
-const names = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "森田初音", "中村 駿也","上村鞠奈","森川愛実"];
+// 7名に変更・追加
+const names = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "森田初音", "中村 駿也", "上村鞠奈", "森川愛実"];
 const lineCount = names.length;
 const amidaHeight = 1500;
 const hLineData = [];
@@ -71,8 +72,8 @@ function init() {
     }
     area.innerHTML = html;
 
-    // 横線を生成
-    for (let i = 0; i < 40; i++) {
+    // 横線を生成 (人数が増えたので少し線を増やして50本に調整)
+    for (let i = 0; i < 50; i++) {
         const col = Math.floor(Math.random() * (lineCount - 1));
         const top = Math.floor(Math.random() * (amidaHeight - 200)) + 100;
         if (hLineData.some(h => h.col === col && Math.abs(h.top - top) < 20)) continue;
@@ -87,7 +88,9 @@ function init() {
 
 async function runAmida() {
     document.getElementById('start-btn').disabled = true;
-    const results = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
+    
+    // 【修正箇所】固定の[1,2,3,4,5]から、人数(lineCount)に応じた動的な配列を生成するように変更
+    const results = Array.from({length: lineCount}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
     
     // ゴールに値をセット
     for(let i=0; i<lineCount; i++) document.getElementById(`goal-${i}`).innerText = results[i] + "番";
