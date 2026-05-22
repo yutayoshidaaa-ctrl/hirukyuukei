@@ -54,11 +54,12 @@
 </div>
 
 <script>
-// 7名に変更・追加
 const names = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "森田初音", "中村 駿也", "上村鞠奈", "森川愛実"];
 const lineCount = names.length;
 const amidaHeight = 1500;
 const hLineData = [];
+// 確実な結果保持用の配列
+const finalResultsArray = [];
 
 function init() {
     const area = document.getElementById('amida-area');
@@ -72,7 +73,7 @@ function init() {
     }
     area.innerHTML = html;
 
-    // 横線を生成 (人数が増えたので少し線を増やして50本に調整)
+    // 横線を生成
     for (let i = 0; i < 50; i++) {
         const col = Math.floor(Math.random() * (lineCount - 1));
         const top = Math.floor(Math.random() * (amidaHeight - 200)) + 100;
@@ -89,24 +90,27 @@ function init() {
 async function runAmida() {
     document.getElementById('start-btn').disabled = true;
     
-    // 【修正箇所】固定の[1,2,3,4,5]から、人数(lineCount)に応じた動的な配列を生成するように変更
+    // 1〜7番のランダムなゴール設定
     const results = Array.from({length: lineCount}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
     
     // ゴールに値をセット
     for(let i=0; i<lineCount; i++) document.getElementById(`goal-${i}`).innerText = results[i] + "番";
 
+    // ランナーたちの競争スタート
+    finalResultsArray.length = 0; // 初期化
     const promises = names.map((name, i) => startRunner(name, i, results));
     await Promise.all(promises);
 
     // 終了後に結果表示
     setTimeout(() => {
-        const finalResults = names.map((name, i) => ({ name, rank: window['finalRank'+i] }))
-                                 .sort((a, b) => a.rank - b.rank);
+        // 【修正】配列に溜まった確実な結果を番号順に並び替え
+        finalResultsArray.sort((a, b) => a.rank - b.rank);
+        
         const list = document.getElementById('result-list');
-        list.innerHTML = finalResults.map(r => `<div class="result-item"><b>${r.rank}番：</b>${r.name}</div>`).join('');
+        list.innerHTML = finalResultsArray.map(r => `<div class="result-item"><b>${r.rank}番：</b>${r.name}</div>`).join('');
         document.getElementById('result-screen').style.display = 'block';
         window.scrollTo(0,0);
-    }, 800);
+    }, 500);
 }
 
 async function startRunner(name, startIdx, results) {
@@ -119,7 +123,6 @@ async function startRunner(name, startIdx, results) {
     let currentCol = startIdx;
     let currentY = 0;
     
-    // このランナーが通る横線を抽出してソート
     const myPath = () => hLineData.filter(h => h.col === currentCol || h.col === currentCol - 1).sort((a,b) => a.top - b.top);
 
     while (true) {
@@ -144,13 +147,15 @@ async function startRunner(name, startIdx, results) {
         document.getElementById(`col-${currentCol}`).querySelector('.vertical-line').appendChild(runner);
         runner.style.left = '50%'; // リセット
 
-        // スクロール追従（自分の動きに合わせて画面を動かす）
+        // スクロール追従（岩本さん基準で画面スクロール）
         if (startIdx === 0) window.scrollTo(0, currentY - 200);
     }
 
     // ゴールへ
     await animate(runner, { top: amidaHeight + 'px' }, (amidaHeight - currentY) * 2);
-    window['finalRank' + startIdx] = results[currentCol];
+    
+    // 【バグ修正ポイント】グローバル変数（window）への格納をやめ、到着した瞬間の最終列(currentCol)に対応する順位を安全に配列へプッシュ
+    finalResultsArray.push({ name: name, rank: results[currentCol] });
 }
 
 function animate(el, props, dur) {
