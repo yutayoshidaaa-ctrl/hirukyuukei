@@ -1,287 +1,251 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>爆走！お昼休憩あみだ</title>
+<meta charset="UTF-8">
+<title>爆走！お昼休憩あみだ</title>
 
-    <style>
-        body {
-            background: #1a1a1a;
-            color: #fff;
-            font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-            text-align: center;
-        }
+<style>
+body {
+    color: #fff;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    text-align: center;
 
-        #header {
-            padding: 20px;
-            background: #333;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 2px solid #ff0077;
-        }
+    background:
+        radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, rgba(255,230,0,0.9) 5%, rgba(180,130,0,0.9) 35%, #5c3b00 100%);
+}
 
-        #start-btn {
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            background: #ff0077;
-            color: #fff;
-            border: none;
-            border-radius: 50px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(255,0,119,0.4);
-            margin-top: 15px;
-        }
+/* キラキラ背景 */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+        repeating-conic-gradient(
+            from 0deg,
+            rgba(255,255,255,0.8) 0deg,
+            rgba(255,215,0,0.4) 2deg,
+            transparent 4deg,
+            transparent 8deg
+        );
+    animation: rotateLight 20s linear infinite;
+}
 
-        #start-btn:disabled {
-            background: #555;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+body::after {
+    content: "✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    font-size: 45px;
+    letter-spacing: 35px;
+    line-height: 120px;
+    color: rgba(255,255,255,0.8);
+    text-shadow: 0 0 12px #fff, 0 0 25px #ffd700;
+    animation: sparkleMove 3s linear infinite;
+    pointer-events: none;
+}
 
-        /* メンバー選択エリア */
-        .member-selector {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            max-width: 800px;
-            margin: 10px auto 0 auto;
-            padding: 10px;
-            background: #222;
-            border-radius: 10px;
-            border: 1px solid #444;
-        }
+@keyframes rotateLight {
+    0% { transform: rotate(0deg) scale(1.5); }
+    100% { transform: rotate(360deg) scale(1.5); }
+}
 
-        /* 🌈 動くレインボー文字 🌈 */
-        .member-checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            padding: 6px 12px;
-            background-color: #2a2a2a;
-            border-radius: 20px;
-            transition: 0.2s;
-            border: 1px solid #333;
+@keyframes sparkleMove {
+    0% { opacity: 0.4; transform: translateY(0); }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; transform: translateY(-80px); }
+}
 
-            background-image: linear-gradient(
-                90deg,
-                #ff0000,
-                #ff9900,
-                #ffee00,
-                #33ff00,
-                #00ffee,
-                #0066ff,
-                #9900ff,
-                #ff0000
-            );
+#header {
+    padding: 20px;
+    background: rgba(0,0,0,0.65);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 2px solid #ff0077;
+}
 
-            background-size: 400%;
-            animation: rainbowMove 4s linear infinite;
+#start-btn {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background: #ff0077;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(255,0,119,0.4);
+    margin-top: 15px;
+}
 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+#start-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
 
-        .member-checkbox-label:hover {
-            transform: scale(1.08);
-            border-color: #ff0077;
-        }
+.member-selector {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    max-width: 900px;
+    margin: 10px auto 0;
+    padding: 10px;
+    background: rgba(0,0,0,0.55);
+    border-radius: 10px;
+    border: 1px solid #ffd700;
+}
 
-        .member-checkbox-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #ff0077;
-            cursor: pointer;
-        }
+.member-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 6px 12px;
+    background-color: rgba(0,0,0,0.7);
+    border-radius: 20px;
+    border: 1px solid #ffd700;
 
-        @keyframes rainbowMove {
-            0% {
-                background-position: 0%;
-            }
-            100% {
-                background-position: 400%;
-            }
-        }
-
-        .amida-wrapper {
-            position: relative;
-            margin: 50px auto;
-            display: inline-block;
-            padding-bottom: 100px;
-        }
-
-        .column {
-            position: relative;
-            width: 140px;
-            float: left;
-        }
-
-        .vertical-line {
-            width: 4px;
-            background: #444;
-            height: 1500px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .horizontal-line {
-            position: absolute;
-            height: 4px;
-            background: #444;
-            width: 140px;
-            left: 50%;
-            z-index: 1;
-        }
-
-        .name-label {
-            height: 60px;
-            font-weight: bold;
-            color: #00ffcc;
-            font-size: 1.1rem;
-        }
-
-        .goal-label {
-            height: 80px;
-            margin-top: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #ffea00;
-            border-top: 2px dashed #555;
-            padding-top: 10px;
-        }
-
-        .runner {
-            position: absolute;
-            width: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff0077;
-            color: white;
-            padding: 5px;
-            border-radius: 5px;
-            font-weight: bold;
-            z-index: 100;
-            white-space: nowrap;
-            box-shadow: 0 0 10px #ff0077;
-        }
-
-        .result-screen {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            padding: 40px;
-            border: 4px solid #00ffcc;
-            z-index: 2000;
-            border-radius: 20px;
-            min-width: 300px;
-            box-shadow: 0 0 30px rgba(0,255,204,0.5);
-        }
-
-        .result-item {
-            font-size: 1.5rem;
-            margin: 15px 0;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        /* 結果画面タイトル */
-#result-screen h2 {
-
-    background-image: linear-gradient(
-        90deg,
-        #ff0000,
-        #ff9900,
-        #ffee00,
-        #33ff00,
-        #00ffee,
-        #0066ff,
-        #9900ff,
-        #ff0000
-    );
-
+    background-image: linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red);
     background-size: 400%;
     animation: rainbowMove 4s linear infinite;
-
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-/* 結果一覧 */
-.result-item {
+.member-checkbox-label input {
+    width: 18px;
+    height: 18px;
+    accent-color: #ff0077;
+}
 
+@keyframes rainbowMove {
+    0% { background-position: 0%; }
+    100% { background-position: 400%; }
+}
+
+.amida-wrapper {
+    position: relative;
+    margin: 50px auto;
+    display: inline-block;
+    padding-bottom: 100px;
+}
+
+.column {
+    position: relative;
+    width: 140px;
+    float: left;
+}
+
+.vertical-line {
+    width: 5px;
+    background: #222;
+    height: 1500px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 0 8px #fff;
+}
+
+.horizontal-line {
+    position: absolute;
+    height: 5px;
+    background: #222;
+    width: 140px;
+    left: 50%;
+    z-index: 1;
+    box-shadow: 0 0 8px #fff;
+}
+
+.name-label {
+    height: 60px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #fff;
+    text-shadow: 0 0 5px #000, 0 0 10px #00ffcc;
+}
+
+.goal-label {
+    height: 80px;
+    margin-top: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffea00;
+    border-top: 2px dashed #fff;
+    padding-top: 10px;
+    text-shadow: 0 0 10px #000;
+}
+
+.runner {
+    position: absolute;
+    width: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff0077;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+    z-index: 100;
+    white-space: nowrap;
+    box-shadow: 0 0 10px #ff0077;
+}
+
+.result-screen {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    padding: 40px;
+    border: 4px solid #00ffcc;
+    z-index: 2000;
+    border-radius: 20px;
+    min-width: 350px;
+    box-shadow: 0 0 30px rgba(0,255,204,0.8);
+}
+
+#result-screen h2,
+.result-item {
+    background-image: linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red);
+    background-size: 400%;
+    animation: rainbowMove 4s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+
+.result-item {
     font-size: 1.5rem;
     margin: 15px 0;
     border-bottom: 1px solid #333;
     padding-bottom: 5px;
-
-    background-image: linear-gradient(
-        90deg,
-        #ff0000,
-        #ff9900,
-        #ffee00,
-        #33ff00,
-        #00ffee,
-        #0066ff,
-        #9900ff,
-        #ff0000
-    );
-
-    background-size: 400%;
-    animation: rainbowMove 4s linear infinite;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    font-weight: bold;
 }
-    </style>
+</style>
 </head>
 
 <body>
 
 <div id="header">
     <h1>🍱 お昼休憩サバイバルあみだ</h1>
-
     <div class="member-selector" id="checkbox-area"></div>
-
-    <button id="start-btn" onclick="runAmida()">
-        運命のスタート！
-    </button>
+    <button id="start-btn" onclick="runAmida()">運命のスタート！</button>
 </div>
 
 <div class="amida-wrapper" id="amida-area"></div>
 
 <div id="result-screen" class="result-screen">
-    <h2 style="color:#00ffcc">✨ 本日の出撃順 ✨</h2>
-
+    <h2>✨ 本日の出撃順 ✨</h2>
     <div id="result-list"></div>
-
-    <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px;">
-        もう一度
-    </button>
+    <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px;">もう一度</button>
 </div>
 
 <script>
-
-const masterNames = [
-    "岩本 佳奈映",
-    "古賀 瑞稀",
-    "古江 彩",
-    "森田初音",
-    "中村 駿也",
-    "上村鞠奈",
-    "森川愛実"
-];
+const masterNames = ["岩本 佳奈映", "古賀 瑞稀", "古江 彩", "森田初音", "中村 駿也", "上村鞠奈", "森川愛実"];
 
 let names = [];
 let lineCount = 0;
@@ -290,226 +254,129 @@ const hLineData = [];
 const finalResultsArray = [];
 
 function initSelector() {
-
     const checkboxArea = document.getElementById('checkbox-area');
-
-    checkboxArea.innerHTML = masterNames.map((name) => `
+    checkboxArea.innerHTML = masterNames.map(name => `
         <label class="member-checkbox-label">
             <input type="checkbox" value="${name}" checked onchange="buildAmida()">
             ${name}
         </label>
     `).join('');
-
     buildAmida();
 }
 
 function buildAmida() {
-
-    const checkboxes = document.querySelectorAll(
-        '#checkbox-area input[type="checkbox"]'
-    );
-
-    names = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
+    const checkboxes = document.querySelectorAll('#checkbox-area input[type="checkbox"]');
+    names = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
     lineCount = names.length;
 
     const area = document.getElementById('amida-area');
     const startBtn = document.getElementById('start-btn');
 
     if (lineCount < 2) {
-
-        area.innerHTML = `
-            <p style="color:#ff0077; font-size:1.2rem; margin-top:50px;">
-                出勤者を2人以上選択してください！
-            </p>
-        `;
-
+        area.innerHTML = `<p style="color:#ff0077; font-size:1.2rem; margin-top:50px;">出勤者を2人以上選択してください！</p>`;
         startBtn.disabled = true;
         return;
-
-    } else {
-
-        startBtn.disabled = false;
     }
 
+    startBtn.disabled = false;
+
     let html = "";
-
     for (let i = 0; i < lineCount; i++) {
-
         html += `
             <div class="column" id="col-${i}">
-                <div class="name-label" id="label-${i}">
-                    ${names[i]}
-                </div>
-
+                <div class="name-label" id="label-${i}">${names[i]}</div>
                 <div class="vertical-line"></div>
-
-                <div class="goal-label" id="goal-${i}">
-                    ?
-                </div>
-            </div>
-        `;
+                <div class="goal-label" id="goal-${i}">?</div>
+            </div>`;
     }
 
     area.innerHTML = html;
-
     hLineData.length = 0;
 
     const totalHLines = lineCount * 8;
 
     for (let i = 0; i < totalHLines; i++) {
-
         const col = Math.floor(Math.random() * (lineCount - 1));
+        const top = Math.floor(Math.random() * (amidaHeight - 200)) + 100;
 
-        const top =
-            Math.floor(Math.random() * (amidaHeight - 200)) + 100;
-
-        if (
-            hLineData.some(
-                h => h.col === col && Math.abs(h.top - top) < 25
-            )
-        ) continue;
+        if (hLineData.some(h => h.col === col && Math.abs(h.top - top) < 25)) continue;
 
         hLineData.push({ col, top });
 
         const hl = document.createElement('div');
-
         hl.className = 'horizontal-line';
         hl.style.top = top + 'px';
-
-        document
-            .getElementById(`col-${col}`)
-            .appendChild(hl);
+        document.getElementById(`col-${col}`).appendChild(hl);
     }
 }
 
 async function runAmida() {
-
     document.getElementById('start-btn').disabled = true;
+    document.querySelectorAll('#checkbox-area input').forEach(cb => cb.disabled = true);
 
-    document
-        .querySelectorAll('#checkbox-area input')
-        .forEach(cb => cb.disabled = true);
+    const results = Array.from({length: lineCount}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
 
-    const results = Array.from(
-        {length: lineCount},
-        (_, i) => i + 1
-    ).sort(() => Math.random() - 0.5);
-
-    for(let i=0; i<lineCount; i++) {
-
-        document.getElementById(`goal-${i}`).innerText =
-            results[i] + "番";
+    for (let i = 0; i < lineCount; i++) {
+        document.getElementById(`goal-${i}`).innerText = results[i] + "番";
     }
 
     finalResultsArray.length = 0;
 
-    const promises = names.map((name, i) =>
-        startRunner(name, i, results)
-    );
-
+    const promises = names.map((name, i) => startRunner(name, i, results));
     await Promise.all(promises);
 
     setTimeout(() => {
-
         finalResultsArray.sort((a, b) => a.rank - b.rank);
 
         const list = document.getElementById('result-list');
-
         list.innerHTML = finalResultsArray.map(r => `
-            <div class="result-item">
-                <b>${r.rank}番：</b>${r.name}
-            </div>
+            <div class="result-item"><b>${r.rank}番：</b>${r.name}</div>
         `).join('');
 
         document.getElementById('result-screen').style.display = 'block';
-
         window.scrollTo(0,0);
-
     }, 500);
 }
 
 async function startRunner(name, startIdx, results) {
-
     const runner = document.createElement('div');
-
     runner.className = 'runner';
     runner.innerText = name;
 
-    document
-        .getElementById(`col-${startIdx}`)
-        .querySelector('.vertical-line')
-        .appendChild(runner);
-
+    document.getElementById(`col-${startIdx}`).querySelector('.vertical-line').appendChild(runner);
     document.getElementById(`label-${startIdx}`).style.visibility = 'hidden';
 
     let currentCol = startIdx;
     let currentY = 0;
 
-    const myPath = () =>
-        hLineData
-            .filter(h =>
-                h.col === currentCol ||
-                h.col === currentCol - 1
-            )
-            .sort((a,b) => a.top - b.top);
+    const myPath = () => hLineData
+        .filter(h => h.col === currentCol || h.col === currentCol - 1)
+        .sort((a,b) => a.top - b.top);
 
     while (true) {
-
         const lines = myPath().filter(h => h.top > currentY);
-
         if (lines.length === 0) break;
 
         const nextLine = lines[0];
 
-        await animate(
-            runner,
-            { top: nextLine.top + 'px' },
-            (nextLine.top - currentY) * 2
-        );
-
+        await animate(runner, { top: nextLine.top + 'px' }, (nextLine.top - currentY) * 2);
         currentY = nextLine.top;
 
-        const isRight = (nextLine.col === currentCol);
+        const isRight = nextLine.col === currentCol;
+        const targetCol = isRight ? currentCol + 1 : currentCol - 1;
+        const moveX = isRight ? '140px' : '-140px';
 
-        const targetCol =
-            isRight
-                ? currentCol + 1
-                : currentCol - 1;
-
-        const moveX =
-            isRight
-                ? '140px'
-                : '-140px';
-
-        await animate(
-            runner,
-            { left: `calc(50% + ${moveX})` },
-            200
-        );
+        await animate(runner, { left: `calc(50% + ${moveX})` }, 200);
 
         currentCol = targetCol;
 
-        document
-            .getElementById(`col-${currentCol}`)
-            .querySelector('.vertical-line')
-            .appendChild(runner);
-
+        document.getElementById(`col-${currentCol}`).querySelector('.vertical-line').appendChild(runner);
         runner.style.left = '50%';
 
-        if (startIdx === 0) {
-
-            window.scrollTo(0, currentY - 200);
-        }
+        if (startIdx === 0) window.scrollTo(0, currentY - 200);
     }
 
-    await animate(
-        runner,
-        { top: amidaHeight + 'px' },
-        (amidaHeight - currentY) * 2
-    );
+    await animate(runner, { top: amidaHeight + 'px' }, (amidaHeight - currentY) * 2);
 
     finalResultsArray.push({
         name: name,
@@ -518,23 +385,16 @@ async function startRunner(name, startIdx, results) {
 }
 
 function animate(el, props, dur) {
-
     return new Promise(res => {
-
-        const anim = el.animate(
-            [props],
-            {
-                duration: dur,
-                fill: 'forwards'
-            }
-        );
-
+        const anim = el.animate([props], {
+            duration: dur,
+            fill: 'forwards'
+        });
         anim.onfinish = res;
     });
 }
 
 initSelector();
-
 </script>
 
 </body>
