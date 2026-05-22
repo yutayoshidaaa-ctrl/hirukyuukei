@@ -492,18 +492,10 @@ function flashStart() {
 function playBlackoutBaan() {
     return new Promise(resolve => {
         const blackout = document.getElementById('blackout');
-        const baanText = document.getElementById('baan-text');
 
         blackout.classList.remove('active');
-        baanText.classList.remove('active');
-
         void blackout.offsetWidth;
-
         blackout.classList.add('active');
-
-        setTimeout(() => {
-            baanText.classList.add('active');
-        }, 900);
 
         setTimeout(() => {
             resolve();
